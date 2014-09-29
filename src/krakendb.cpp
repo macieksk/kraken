@@ -208,10 +208,13 @@ uint32_t *KrakenDB::kmer_query(uint64_t kmer, uint64_t *last_bin_key,
                                int64_t *min_pos, int64_t *max_pos,
                                bool retry_on_failure)
 {
+  // Set up the variables
   int64_t min, max, mid;
   uint64_t comp_kmer;
   uint64_t b_key;
+  // Skips header and get the pointer to the start of k-mer/taxon pair array
   char *ptr = get_pair_ptr();
+  // Get the number of bytes each pair occupys
   size_t pair_sz = pair_size();
 
   // Use provided values if they exist and are valid
@@ -221,8 +224,11 @@ uint32_t *KrakenDB::kmer_query(uint64_t kmer, uint64_t *last_bin_key,
     max = *max_pos;
   }
   else {
+    // Get the bin key which is the m-mer whose canonical representation is "smallest" in the k-mer
     b_key = bin_key(kmer);
+    // Get the starting index of the range of k-mers with b_key as the minimizer
     min = index_ptr->at(b_key);
+    // Get the ending index of the range of k-mers with b_key as the minimizer
     max = index_ptr->at(b_key + 1) - 1;
     // Invalid min/max values + retry_on_failure means min/max need to be
     // initialized and set in caller
@@ -235,20 +241,27 @@ uint32_t *KrakenDB::kmer_query(uint64_t kmer, uint64_t *last_bin_key,
 
   // Binary search with large window
   while (min + 15 <= max) {
+    // Get the middle index between min and max
     mid = min + (max - min) / 2;
+    // Get the value of the kmer at the middle index of the current range of k-mers
     comp_kmer = * (uint64_t *) (ptr + pair_sz * mid);
     comp_kmer &= (1ull << key_bits) - 1;  // trim any excess
+    // if the input kmer value is larger than the kmer value at the middle index, search the right half of the array
     if (kmer > comp_kmer)
       min = mid + 1;
+    // if the input kmer value is smaller than the kmer value at the middle index, search the left half of the array
     else if (kmer < comp_kmer)
       max = mid - 1;
+    // if the input kmer value is equal to the kmer value at the middle index, return the pointer to the kmer at the middle index
     else
       return (uint32_t *) (ptr + pair_sz * mid + key_len);
   }
   // Linear search once window shrinks
   for (mid = min; mid <= max; mid++) {
+    // Get the value of the kmer at the mid index of the current range of k-mers
     comp_kmer = * (uint64_t *) (ptr + pair_sz * mid);
     comp_kmer &= (1ull << key_bits) - 1;  // trim any excess
+    // If find a matching kmer, return a pointer to the kmer
     if (kmer == comp_kmer)
       return (uint32_t *) (ptr + pair_sz * mid + key_len);
   }
