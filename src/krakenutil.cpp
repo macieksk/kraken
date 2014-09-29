@@ -77,25 +77,30 @@ namespace kraken {
 
     // Sum each taxon's LTR path
     while (it != hit_counts.end()) {
+      // Get the current taxon
       uint32_t taxon = it->first;
       uint32_t node = taxon;
+      // Initialize the weight of the current leaf-to-root path
       uint32_t score = 0;
       while (node > 0) {
+        // Add the weight of the current node to the weight of the current leaf-to-root path
         score += hit_counts[node];
+        // Go to the parent node of the current node
         node = parent_map[node];
       }
-
+      // If the weight of the current leaf-to-root path is larger than the current max weight of LTR path, update the max_score and max_taxon
       if (score > max_score) {
         max_taxa.clear();
         max_score = score;
         max_taxon = taxon;
       }
+      // If the weight of the current leaf-to-root path is the same as the current max weight, store the current node in the max_taxa set
       else if (score == max_score) {
         if (max_taxa.empty())
           max_taxa.insert(max_taxon);
         max_taxa.insert(taxon);
       }
-
+      // Iterate over all the nodes in the hit_counts map
       it++;
     }
 
@@ -103,6 +108,7 @@ namespace kraken {
     if (! max_taxa.empty()) {
       set<uint32_t>::iterator sit = max_taxa.begin();
       max_taxon = *sit;
+      // Iterate over all the nodes in the max_taxa set and return the LCA of all the nodes in the set iteratively
       for (sit++; sit != max_taxa.end(); sit++)
         max_taxon = lca(parent_map, max_taxon, *sit);
     }
