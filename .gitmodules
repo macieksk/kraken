@@ -1,0 +1,3 @@
+[submodule "Jellyfish"]
+	path = Jellyfish
+	url = git@github.com:macieksk/Jellyfish.git
