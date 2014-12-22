@@ -22,6 +22,8 @@
 
 #include "kraken_headers.hpp"
 
+#include "seedmod/seedmod.hpp"
+
 namespace kraken {
   // Build a map of node to parent from an NCBI taxonomy nodes.dmp file
   std::map<uint32_t, uint32_t> build_parent_map(std::string filename);
@@ -37,6 +39,7 @@ namespace kraken {
 
   class KmerScanner {
     public:
+	typedef uint64_t base_type;
 
     KmerScanner(std::string &seq, size_t start=0, size_t finish=~0);
     uint64_t *next_kmer();  // NULL when seq exhausted
@@ -46,6 +49,35 @@ namespace kraken {
     static uint8_t get_k();
     // MUST be called before first invocation of KmerScanner()
     static void set_k(uint8_t n);
+
+    static const base_type c3 = (base_type)0x3;
+
+    template<typename OutputIterator>
+    static OutputIterator to_codes(const base_type & w, OutputIterator it) {
+      int shift  = sizeof(base_type)*8 - 2; // Number of bits to shift to get base
+      for( ; shift >= 0; shift -= 2, ++it)
+          *it = (w >> shift) & c3;
+      return it;
+    }
+
+    typedef kraken::kmer_shift_left_output_iterator<typename KmerScanner::base_type>
+    									mer_sleft_oiter;
+    typedef seedmod::SpacedSeedForReadSquasherIterator<typename KmerScanner::base_type,
+      		  	  	  	  	  	  	  	  	  mer_sleft_oiter> seed_read_squasher_iter_type;
+    typedef seedmod::SpacedSeedForIndexSquasherIterator<typename KmerScanner::base_type,
+          		  	  	  	  	  	  	  	  	  mer_sleft_oiter> seed_index_squasher_iter_type;
+
+    //Chaining input/output iterators to squash seed
+    static void squash_kmer_for_read(const char * seed, const base_type & fmer, base_type & ret_m){
+      	  		mer_sleft_oiter meroiter(ret_m);
+      	  		seed_read_squasher_iter_type seed_squash_it(seed,meroiter);
+      	  		KmerScanner::to_codes(fmer,seed_squash_it);
+    };
+    static void squash_kmer_for_index(const char * seed, const base_type & fmer, base_type & ret_m){
+          	  		mer_sleft_oiter meroiter(ret_m);
+          	  		seed_index_squasher_iter_type seed_squash_it(seed,meroiter);
+          	  		KmerScanner::to_codes(fmer,seed_squash_it);
+    };
 
     private:
     std::string *str;
@@ -58,6 +90,9 @@ namespace kraken {
     static uint64_t kmer_mask;
     static uint32_t mini_kmer_mask;
   };
+
+
+
 }
 
 #endif

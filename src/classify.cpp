@@ -22,6 +22,7 @@
 #include "krakenutil.hpp"
 #include "quickfile.hpp"
 #include "seqreader.hpp"
+#include <boost/algorithm/string/trim.hpp>
 
 const size_t DEF_WORK_UNIT_SIZE = 500000;
 
@@ -38,7 +39,8 @@ set<uint32_t> get_ancestry(uint32_t taxon);
 void report_stats(struct timeval time1, struct timeval time2);
 
 int Num_threads = 1;
-string DB_filename, Index_filename, Nodes_filename;
+string DB_filename, Index_filename, Nodes_filename, Spaced_seed;
+const char * Spaced_seed_cstr;
 bool Quick_mode = false;
 bool Fastq_input = false;
 bool Print_classified = false;
@@ -76,7 +78,8 @@ int main(int argc, char **argv) {
   if (Populate_memory)
     db_file.load_file();
   Database = KrakenDB(db_file.ptr());
-  KmerScanner::set_k(Database.get_k());
+  //KmerScanner::set_k(Database.get_k()); //changed to seed span
+  KmerScanner::set_k(Spaced_seed.length());
 
   QuickFile idx_file;
   idx_file.open_file(Index_filename);
@@ -211,32 +214,53 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
   uint32_t taxon = 0;
   uint32_t hits = 0;  // only maintained if in quick mode
 
-  uint64_t current_bin_key;
-  int64_t current_min_pos = 1;
-  int64_t current_max_pos = 0;
+  uint64_t current_bin_key1,current_bin_key2;
+  int64_t current_min_pos1 = 1,current_min_pos2 = 1;
+  int64_t current_max_pos1 = 0,current_max_pos2 = 0;
 
-  if (dna.seq.size() >= Database.get_k()) {
+  if (dna.seq.size() >= KmerScanner::get_k()) {
     KmerScanner scanner(dna.seq);
     while ((kmer_ptr = scanner.next_kmer()) != NULL) {
       taxon = 0;
       if (scanner.ambig_kmer()) {
         ambig_list.push_back(1);
+        taxa.push_back(taxon);
       }
       else {
         ambig_list.push_back(0);
-        uint32_t *val_ptr = Database.kmer_query(
-                              Database.canonical_representation(*kmer_ptr),
-                              &current_bin_key,
-                              &current_min_pos, &current_max_pos
-                            );
-        taxon = val_ptr ? *val_ptr : 0;
-        if (taxon) {
-          hit_counts[taxon]++;
-          if (Quick_mode && ++hits >= Minimum_hit_count)
-            break;
-        }
+
+        uint64_t kmer_squashed;
+        KmerScanner::squash_kmer_for_read(Spaced_seed_cstr,*kmer_ptr,kmer_squashed);
+
+		uint32_t *val_ptr = Database.kmer_query(
+							  //Database.canonical_representation(*kmer_ptr),
+		                      kmer_squashed,
+							  &current_bin_key1,
+							  &current_min_pos1, &current_max_pos1
+							);
+		taxon = val_ptr ? *val_ptr : 0;
+		if (taxon) {
+		  hit_counts[taxon]++;
+		  if (Quick_mode && ++hits >= Minimum_hit_count)
+			break;
+		}
+		taxa.push_back(taxon);
+
+		uint64_t rev_kmer = Database.reverse_complement(*kmer_ptr);
+		KmerScanner::squash_kmer_for_read(Spaced_seed_cstr,rev_kmer,kmer_squashed);
+		val_ptr = Database.kmer_query(
+							  kmer_squashed,
+							  &current_bin_key2,
+							  &current_min_pos2, &current_max_pos2
+							);
+		taxon = val_ptr ? *val_ptr : 0;
+		if (taxon) {
+		  hit_counts[taxon]++;
+		  if (Quick_mode && ++hits >= Minimum_hit_count)
+			break;
+		}
+		taxa.push_back(taxon);
       }
-      taxa.push_back(taxon);
     }
   }
 
@@ -346,7 +370,7 @@ void parse_command_line(int argc, char **argv) {
 
   if (argc > 1 && strcmp(argv[1], "-h") == 0)
     usage(0);
-  while ((opt = getopt(argc, argv, "d:i:t:u:n:m:o:qfcC:U:M")) != -1) {
+  while ((opt = getopt(argc, argv, "d:i:t:u:n:m:o:qfcC:U:MZ:")) != -1) {
     switch (opt) {
       case 'd' :
         DB_filename = optarg;
@@ -403,6 +427,12 @@ void parse_command_line(int argc, char **argv) {
       case 'M' :
         Populate_memory = true;
         break;
+      case 'Z' :
+        Spaced_seed = optarg;
+        boost::algorithm::trim(Spaced_seed);
+        cerr << endl<<"SpacedSeed: "<<Spaced_seed <<endl;
+        Spaced_seed_cstr = Spaced_seed.c_str();
+        break;
       default:
         usage();
         break;
@@ -421,6 +451,10 @@ void parse_command_line(int argc, char **argv) {
     cerr << "Must specify one of -q or -n" << endl;
     usage();
   }
+  if (Spaced_seed.empty() || Spaced_seed.length()<=0) {
+      cerr << "Must specify spaced seed -Z" << endl;
+      usage();
+  }
   if (optind == argc) {
     cerr << "No sequence data files specified" << endl;
   }
@@ -432,6 +466,7 @@ void usage(int exit_code) {
        << "Options: (*mandatory)" << endl
        << "* -d filename      Kraken DB filename" << endl
        << "* -i filename      Kraken DB index filename" << endl
+	   << "* -Z spaced_seed   Spaced seed, where match is denoted by #, eg. ###__#_###_###" << endl
        << "  -n filename      NCBI Taxonomy nodes file" << endl
        << "  -o filename      Output file for Kraken output" << endl
        << "  -t #             Number of threads" << endl
