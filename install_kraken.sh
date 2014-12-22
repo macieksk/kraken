@@ -19,7 +19,7 @@
 
 set -e
 
-VERSION="0.10.6-unreleased"
+VERSION="0.10.6-unreleased-seed"
 
 if [ -z "$1" ] || [ -n "$2" ]
 then
