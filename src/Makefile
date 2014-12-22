@@ -22,7 +22,7 @@ classify: krakendb.o quickfile.o krakenutil.o seqreader.o
 
 make_seqid_to_taxid_map: quickfile.o
 
-krakenutil.o: krakenutil.cpp krakenutil.hpp
+krakenutil.o: krakenutil.cpp krakenutil.hpp seedmod/seedmod.hpp
 	$(CXX) $(CXXFLAGS) -c krakenutil.cpp
 
 krakendb.o: krakendb.cpp krakendb.hpp quickfile.hpp

@@ -22,6 +22,7 @@
 #include "krakendb.hpp"
 #include "krakenutil.hpp"
 #include "seqreader.hpp"
+#include <boost/algorithm/string/trim.hpp>
 
 #define SKIP_LEN 50000
 
@@ -38,7 +39,9 @@ void set_lcas(uint32_t taxid, string &seq, size_t start, size_t finish);
 int Num_threads = 1;
 string DB_filename, Index_filename, Nodes_filename,
   File_to_taxon_map_filename,
-  ID_to_taxon_map_filename, Multi_fasta_filename;
+  ID_to_taxon_map_filename, Multi_fasta_filename,
+  Spaced_seed;
+const char * Spaced_seed_cstr;
 bool Allow_extra_kmers = false;
 bool Operate_in_RAM = false;
 bool One_FASTA_file = false;
@@ -56,7 +59,8 @@ int main(int argc, char **argv) {
 
   QuickFile db_file(DB_filename, "rw");
   Database = KrakenDB(db_file.ptr());
-  KmerScanner::set_k(Database.get_k());
+  //KmerScanner::set_k(Database.get_k()); //changed to seed span
+  KmerScanner::set_k(Spaced_seed.length());
 
   char *temp_ptr = NULL;
   if (Operate_in_RAM) {
@@ -112,7 +116,7 @@ void process_single_file() {
     if (taxid) {
       #pragma omp parallel for schedule(dynamic)
       for (size_t i = 0; i < dna.seq.size(); i += SKIP_LEN)
-        set_lcas(taxid, dna.seq, i, i + SKIP_LEN + Database.get_k() - 1);
+        set_lcas(taxid, dna.seq, i, i + SKIP_LEN + KmerScanner::get_k() - 1);
     }
     cerr << "\rProcessed " << ++seqs_processed << " sequences";
   }
@@ -154,7 +158,7 @@ void process_file(string filename, uint32_t taxid) {
 
   #pragma omp parallel for schedule(dynamic)
   for (size_t i = 0; i < dna.seq.size(); i += SKIP_LEN)
-    set_lcas(taxid, dna.seq, i, i + SKIP_LEN + Database.get_k() - 1);
+    set_lcas(taxid, dna.seq, i, i + SKIP_LEN + KmerScanner::get_k() - 1);
 }
 
 void set_lcas(uint32_t taxid, string &seq, size_t start, size_t finish) {
@@ -165,8 +169,12 @@ void set_lcas(uint32_t taxid, string &seq, size_t start, size_t finish) {
   while ((kmer_ptr = scanner.next_kmer()) != NULL) {
     if (scanner.ambig_kmer())
       continue;
+    uint64_t kmer_squashed;
+    KmerScanner::squash_kmer_for_index(Spaced_seed_cstr,*kmer_ptr,kmer_squashed);
     val_ptr = Database.kmer_query(
-                Database.canonical_representation(*kmer_ptr)
+                //Database.canonical_representation(*kmer_ptr)
+    		    //No canonical representation in Kraken-seed
+    			kmer_squashed
               );
     if (val_ptr == NULL) {
       if (! Allow_extra_kmers)
@@ -184,7 +192,7 @@ void parse_command_line(int argc, char **argv) {
 
   if (argc > 1 && strcmp(argv[1], "-h") == 0)
     usage(0);
-  while ((opt = getopt(argc, argv, "f:d:i:t:n:m:F:xM")) != -1) {
+  while ((opt = getopt(argc, argv, "f:d:i:t:n:m:F:xMZ:")) != -1) {
     switch (opt) {
       case 'f' :
         File_to_taxon_map_filename = optarg;
@@ -219,6 +227,12 @@ void parse_command_line(int argc, char **argv) {
       case 'M' :
         Operate_in_RAM = true;
         break;
+      case 'Z' :
+        Spaced_seed = optarg;
+        boost::algorithm::trim(Spaced_seed);
+        cerr << endl<<"SpacedSeed: "<<Spaced_seed <<endl;
+        Spaced_seed_cstr = Spaced_seed.c_str();
+        break;
       default:
         usage();
         break;
@@ -231,6 +245,10 @@ void parse_command_line(int argc, char **argv) {
   if (File_to_taxon_map_filename.empty() &&
       (Multi_fasta_filename.empty() || ID_to_taxon_map_filename.empty()))
     usage();
+  if (Spaced_seed.empty() || Spaced_seed.length()<=0) {
+      cerr << "Must specify spaced seed -Z" << endl;
+      usage();
+  }
 
   if (! File_to_taxon_map_filename.empty())
     One_FASTA_file = false;
