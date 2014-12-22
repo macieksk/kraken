@@ -19,7 +19,7 @@
 
 set -e
 
-VERSION="0.10.5-beta"
+VERSION="0.10.5-beta-0.01-seed"
 
 if [ -z "$1" ] || [ -n "$2" ]
 then
