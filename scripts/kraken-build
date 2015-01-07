@@ -45,6 +45,7 @@ my @VALID_LIBRARY_TYPES = qw/bacteria viruses human/;
 # Option/task option variables
 my (
   $db,
+  $seed,
   $threads,
   $minimizer_len,
   $kmer_len,
@@ -87,6 +88,7 @@ GetOptions(
   "version" => \&display_version,
 
   "db=s" => \$db,
+  "seed=s" => \$seed,
   "threads=i" => \$threads,
   "minimizer-len=i", \$minimizer_len,
   "kmer-len=i", \$kmer_len,
@@ -148,6 +150,7 @@ if ($max_db_size !~ /^$/ && $max_db_size <= 0) {
 }
 
 $ENV{"KRAKEN_DB_NAME"} = $db;
+$ENV{"KRAKEN_SEED_SEQUENCE"} = $seed;
 $ENV{"KRAKEN_THREAD_CT"} = $threads;
 $ENV{"KRAKEN_MINIMIZER_LEN"} = $minimizer_len;
 $ENV{"KRAKEN_KMER_LEN"} = $kmer_len;
@@ -168,7 +171,11 @@ elsif (defined($shrink)) {
   shrink_db($shrink);
 }
 elsif ($standard) {
-  standard_installation();
+  if (defined($seed)){
+    standard_installation_seed();	
+  } else {
+    standard_installation();
+  }  
 }
 elsif ($build) {
   build_database();
@@ -211,6 +218,7 @@ Task options (exactly one must be selected):
 Options:
   --db NAME                  Kraken DB/library name (mandatory except for
                              --help/--version)
+  --seed SEED                Spaced seed, where match is denoted by #, eg. ###__#_###_###
   --threads #                Number of threads (def: $DEF_THREAD_CT)
   --new-db NAME              New Kraken DB name (shrink task only; mandatory
                              for shrink task)
@@ -273,6 +281,10 @@ sub shrink_db {
 
 sub standard_installation {
   exec "standard_installation.sh";
+}
+
+sub standard_installation {
+  exec "standard_installation_seed.sh";
 }
 
 sub build_database {
