@@ -50,16 +50,6 @@ namespace kraken {
     // MUST be called before first invocation of KmerScanner()
     static void set_k(uint8_t n);
 
-    static const base_type c3 = (base_type)0x3;
-
-    template<typename OutputIterator>
-    static OutputIterator to_codes(const int k, const base_type & w, OutputIterator it) {
-      int shift  = k<<1 - 2; // Number of bits to shift to get base
-      for( ; shift >= 0; shift -= 2, ++it)
-          *it = (w >> shift) & c3;
-      return it;
-    }
-
     typedef kraken::kmer_shift_left_output_iterator<typename KmerScanner::base_type>
     									mer_sleft_oiter;
     typedef seedmod::SpacedSeedForReadSquasherIterator<typename KmerScanner::base_type,
@@ -71,12 +61,12 @@ namespace kraken {
     static void squash_kmer_for_read(const char * seed, const base_type & fmer, base_type & ret_m){
       	  		mer_sleft_oiter meroiter(ret_m);
       	  		seed_read_squasher_iter_type seed_squash_it(seed,meroiter);
-      	  		KmerScanner::to_codes(get_k(),fmer,seed_squash_it);
+      	  		kraken::to_codes(get_k(),fmer,seed_squash_it);
     };
     static void squash_kmer_for_index(const char * seed, const base_type & fmer, base_type & ret_m){
           	  		mer_sleft_oiter meroiter(ret_m);
           	  		seed_index_squasher_iter_type seed_squash_it(seed,meroiter);
-          	  		KmerScanner::to_codes(get_k(),fmer,seed_squash_it);
+          	  		kraken::to_codes(get_k(),fmer,seed_squash_it);
     };
 
     private:
