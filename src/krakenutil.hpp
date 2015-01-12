@@ -50,23 +50,12 @@ namespace kraken {
     // MUST be called before first invocation of KmerScanner()
     static void set_k(uint8_t n);
 
-    typedef kraken::kmer_shift_left_output_iterator<typename KmerScanner::base_type>
-    									mer_sleft_oiter;
-    typedef seedmod::SpacedSeedForReadSquasherIterator<typename KmerScanner::base_type,
-      		  	  	  	  	  	  	  	  	  mer_sleft_oiter> seed_read_squasher_iter_type;
-    typedef seedmod::SpacedSeedForIndexSquasherIterator<typename KmerScanner::base_type,
-          		  	  	  	  	  	  	  	  	  mer_sleft_oiter> seed_index_squasher_iter_type;
-
     //Chaining input/output iterators to squash seed
     static void squash_kmer_for_read(const char * seed, const base_type & fmer, base_type & ret_m){
-      	  		mer_sleft_oiter meroiter(ret_m);
-      	  		seed_read_squasher_iter_type seed_squash_it(seed,meroiter);
-      	  		kraken::to_codes(get_k(),fmer,seed_squash_it);
+    	kraken::squash_kmer_for_read(seed, get_k(),fmer,ret_m);
     };
     static void squash_kmer_for_index(const char * seed, const base_type & fmer, base_type & ret_m){
-          	  		mer_sleft_oiter meroiter(ret_m);
-          	  		seed_index_squasher_iter_type seed_squash_it(seed,meroiter);
-          	  		kraken::to_codes(get_k(),fmer,seed_squash_it);
+    	kraken::squash_kmer_for_index(seed, get_k(),fmer,ret_m);
     };
 
     private:
