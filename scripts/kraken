@@ -131,8 +131,18 @@ if ($auto_detect) {
   auto_detect_file_format();
 }
 
+#Read seed from a file in db
+my $seedfile = "$db_prefix/spaced_seed_sequence";
+open(my $fh, '<:encoding(UTF-8)', $seedfile)
+  or die "Could not open file '$seedfile' $!";
+my $seed = <$fh>;
+chomp $seed;
+print STDERR "Kraken using seed: $seed\n";
+
+
 # set flags for classifier
 my @flags;
+push @flags, "-Z", $seed;
 push @flags, "-d", $kdb_file;
 push @flags, "-i", $idx_file;
 push @flags, "-t", $threads if $threads > 1;
