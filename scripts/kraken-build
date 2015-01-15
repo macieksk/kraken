@@ -159,7 +159,10 @@ $ENV{"KRAKEN_MAX_DB_SIZE"} = $max_db_size;
 $ENV{"KRAKEN_WORK_ON_DISK"} = $work_on_disk;
 
 if (defined($seed)){
-    system "echo $seed > $db/spaced_seed_sequence";
+    #system "echo $seed  $db/spaced_seed_sequence";
+    my $seedfile = "$db/spaced_seed_sequence";
+    open(my $fh,'>',$seedfile) or die "Could not open file '$seedfile'!\n";
+    print $fh $seed; close $fh;
 }
 
 if ($dl_taxonomy) {

@@ -47,8 +47,13 @@ then
 fi
 cd "$DATABASE_DIR"
 
-cat spaced_seed_sequence
-exit 1
+KRAKEN_SEED_SEQUENCE=`cat spaced_seed_sequence`
+if [ -z "$KRAKEN_SEED_SEQUENCE" ]
+then
+  echo "This version of Kraken requires -seed parameter or spaced_seed_sequence file in DB dir."
+  echo "No seed given - aborting."
+  exit 1
+fi
 
 MEMFLAG=""
 if [ -z "$KRAKEN_WORK_ON_DISK" ]
@@ -76,8 +81,9 @@ else
 
   find library/ '(' -name '*.fna' -o -name '*.fa' -o -name '*.ffn' ')' -print0 | \
     xargs -0 cat | \
-    jellyfish count -m $KRAKEN_KMER_LEN -s $KRAKEN_HASH_SIZE -C -t $KRAKEN_THREAD_CT \
+    jellyfish count -Z $KRAKEN_SEED_SEQUENCE -s $KRAKEN_HASH_SIZE -t $KRAKEN_THREAD_CT \
       -o database /dev/fd/0
+    #jellyfish count -m $KRAKEN_KMER_LEN -s $KRAKEN_HASH_SIZE -C -t $KRAKEN_THREAD_CT \
 
   # Merge only if necessary
   if [ -e "database_1" ]
@@ -188,8 +194,9 @@ else
   start_time1=$(date "+%s.%N")
   find library/ '(' -name '*.fna' -o -name '*.fa' -o -name '*.ffn' ')' -print0 | \
     xargs -0 cat | \
-    set_lcas $MEMFLAG -x -d database.kdb -i database.idx \
+    set_lcas $MEMFLAG -x -d database.kdb -i database.idx -Z $KRAKEN_SEED_SEQUENCE \
     -n taxonomy/nodes.dmp -t $KRAKEN_THREAD_CT -m seqid2taxid.map -F /dev/fd/0
+    #set_lcas $MEMFLAG -x -d database.kdb -i database.idx \
   touch "lca.complete"
 
   echo "Database LCAs set. [$(report_time_elapsed $start_time1)]"
