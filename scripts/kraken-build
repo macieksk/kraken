@@ -158,6 +158,10 @@ $ENV{"KRAKEN_HASH_SIZE"} = $hash_size;
 $ENV{"KRAKEN_MAX_DB_SIZE"} = $max_db_size;
 $ENV{"KRAKEN_WORK_ON_DISK"} = $work_on_disk;
 
+if (defined($seed)){
+    system "echo $seed > $db/spaced_seed_sequence";
+}
+
 if ($dl_taxonomy) {
   download_taxonomy();
 }
@@ -171,11 +175,7 @@ elsif (defined($shrink)) {
   shrink_db($shrink);
 }
 elsif ($standard) {
-  if (defined($seed)){
-    standard_installation_seed();	
-  } else {
     standard_installation();
-  }  
 }
 elsif ($build) {
   build_database();
@@ -283,9 +283,9 @@ sub standard_installation {
   exec "standard_installation.sh";
 }
 
-sub standard_installation {
-  exec "standard_installation_seed.sh";
-}
+#sub standard_installation {
+#  exec "standard_installation_seed.sh";
+#}
 
 sub build_database {
   exec "build_kraken_db.sh";
