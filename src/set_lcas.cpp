@@ -271,6 +271,7 @@ void usage(int exit_code) {
        << "* -d filename      Kraken DB filename" << endl
        << "* -i filename      Kraken DB index filename" << endl
        << "* -n filename      NCBI Taxonomy nodes file" << endl
+	   << "* -Z spaced_seed   Spaced seed, where match is denoted by #, eg. ###__#_###_###" << endl
        << "  -t #             Number of threads" << endl
        << "  -M               Copy DB to RAM during operation" << endl
        << "  -x               K-mers not found in DB do not cause errors" << endl

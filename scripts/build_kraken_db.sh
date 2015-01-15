@@ -47,6 +47,9 @@ then
 fi
 cd "$DATABASE_DIR"
 
+cat spaced_seed_sequence
+exit 1
+
 MEMFLAG=""
 if [ -z "$KRAKEN_WORK_ON_DISK" ]
 then
