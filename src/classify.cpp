@@ -242,21 +242,25 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
 							  &current_min_pos1, &current_max_pos1
 							);
 		taxon = val_ptr ? *val_ptr : 0;
-		if (taxon) {
-		  hit_counts[taxon]++;
-		  if (Quick_mode && ++hits >= Minimum_hit_count)
-			break;
-		}
-		taxa.push_back(taxon);
+		//TODO instead of choose first startegy, one should consider implementing here
+		//the Set LCA strategy
+//		if (taxon) {
+//		  hit_counts[taxon]++;
+//		  if (Quick_mode && ++hits >= Minimum_hit_count)
+//			break;
+//		}
+//		taxa.push_back(taxon);
 
-		uint64_t rev_kmer = Database.reverse_complement(*kmer_ptr);
-		KmerScanner::squash_kmer_for_read(Spaced_seed_cstr,rev_kmer,kmer_squashed);
-		val_ptr = Database.kmer_query(
-							  kmer_squashed,
-							  &current_bin_key2,
-							  &current_min_pos2, &current_max_pos2
-							);
-		taxon = val_ptr ? *val_ptr : 0;
+		if(!taxon){
+			uint64_t rev_kmer = Database.reverse_complement(*kmer_ptr);
+			KmerScanner::squash_kmer_for_read(Spaced_seed_cstr,rev_kmer,kmer_squashed);
+			val_ptr = Database.kmer_query(
+								  kmer_squashed,
+								  &current_bin_key2,
+								  &current_min_pos2, &current_max_pos2
+								);
+			taxon = val_ptr ? *val_ptr : 0;
+		}
 		if (taxon) {
 		  hit_counts[taxon]++;
 		  if (Quick_mode && ++hits >= Minimum_hit_count)
