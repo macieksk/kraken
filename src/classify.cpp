@@ -218,18 +218,18 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
   int64_t current_min_pos1 = 1,current_min_pos2 = 1;
   int64_t current_max_pos1 = 0,current_max_pos2 = 0;
 
+  uint64_t kmer_squashed, rev_kmer;
+
   if (dna.seq.size() >= KmerScanner::get_k()) {
     KmerScanner scanner(dna.seq);
     while ((kmer_ptr = scanner.next_kmer()) != NULL) {
       taxon = 0;
       if (scanner.ambig_kmer()) {
         ambig_list.push_back(1);
-        taxa.push_back(taxon);
       }
       else {
         ambig_list.push_back(0);
 
-        uint64_t kmer_squashed;
         KmerScanner::squash_kmer_for_read(Spaced_seed_cstr,*kmer_ptr,kmer_squashed);
 
 		uint32_t *val_ptr = Database.kmer_query(
@@ -239,17 +239,19 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
 							  &current_min_pos1, &current_max_pos1
 							);
 		taxon = val_ptr ? *val_ptr : 0;
-		//TODO instead of choose first startegy, one should consider implementing here
-		//the Set LCA strategy
+
+//TODO instead of choose first startegy, one should consider implementing here
+//the Set LCA strategy
 //		if (taxon) {
 //		  hit_counts[taxon]++;
 //		  if (Quick_mode && ++hits >= Minimum_hit_count)
 //			break;
 //		}
-//		taxa.push_back(taxon);
 
 		if(!taxon){
-			uint64_t rev_kmer = Database.reverse_complement(*kmer_ptr);
+			rev_kmer = Database.reverse_complement(*kmer_ptr);
+			//std::cerr<< kraken::kmer_to_str(Database.get_k(),*kmer_ptr)<<endl;
+			//std::cerr<< kraken::kmer_to_str(Database.get_k(),rev_kmer)<<endl;
 			KmerScanner::squash_kmer_for_read(Spaced_seed_cstr,rev_kmer,kmer_squashed);
 			val_ptr = Database.kmer_query(
 								  kmer_squashed,
@@ -263,8 +265,8 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
 		  if (Quick_mode && ++hits >= Minimum_hit_count)
 			break;
 		}
-		taxa.push_back(taxon);
       }
+      taxa.push_back(taxon);
     }
   }
 
