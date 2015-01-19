@@ -211,7 +211,7 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
   vector<uint8_t> ambig_list;
   map<uint32_t, uint32_t> hit_counts;
   uint64_t *kmer_ptr;
-  uint32_t taxon = 0;
+  uint32_t taxon = 0, taxon2=0;
   uint32_t hits = 0;  // only maintained if in quick mode
 
   uint64_t current_bin_key1,current_bin_key2;
@@ -240,26 +240,24 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
 							);
 		taxon = val_ptr ? *val_ptr : 0;
 
-//TODO instead of choose first startegy, one should consider implementing here
-//the Set LCA strategy
-//		if (taxon) {
-//		  hit_counts[taxon]++;
-//		  if (Quick_mode && ++hits >= Minimum_hit_count)
-//			break;
-//		}
 
-		if(!taxon){
-			rev_kmer = Database.reverse_complement(*kmer_ptr);
-			//std::cerr<< kraken::kmer_to_str(Database.get_k(),*kmer_ptr)<<endl;
-			//std::cerr<< kraken::kmer_to_str(Database.get_k(),rev_kmer)<<endl;
-			KmerScanner::squash_kmer_for_read(Spaced_seed_cstr,rev_kmer,kmer_squashed);
-			val_ptr = Database.kmer_query(
-								  kmer_squashed,
-								  &current_bin_key2,
-								  &current_min_pos2, &current_max_pos2
-								);
-			taxon = val_ptr ? *val_ptr : 0;
+		rev_kmer = Database.reverse_complement(*kmer_ptr);
+		KmerScanner::squash_kmer_for_read(Spaced_seed_cstr,rev_kmer,kmer_squashed);
+
+		val_ptr = Database.kmer_query(
+							  kmer_squashed,
+							  &current_bin_key2,
+							  &current_min_pos2, &current_max_pos2
+							);
+		taxon2 = val_ptr ? *val_ptr : 0;
+
+		//Perform LCA resolution if both above queries succeed
+		if (taxon && taxon2){
+			taxon = lca(Parent_map, taxon, taxon2);
+		} else {
+			taxon = taxon? taxon : taxon2;
 		}
+
 		if (taxon) {
 		  hit_counts[taxon]++;
 		  if (Quick_mode && ++hits >= Minimum_hit_count)
