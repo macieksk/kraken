@@ -52,11 +52,21 @@ namespace kraken {
 
     //Chaining input/output iterators to squash seed
     static void squash_kmer_for_read(const char * seed, const base_type & fmer, base_type & ret_m){
-    	kraken::squash_kmer_for_read(seed, get_k(),fmer,ret_m);
+    	kraken::squash_kmer_for_read(seed, k,fmer,ret_m);
     };
     static void squash_kmer_for_index(const char * seed, const base_type & fmer, base_type & ret_m){
-    	kraken::squash_kmer_for_index(seed, get_k(),fmer,ret_m);
+    	kraken::squash_kmer_for_index(seed, k,fmer,ret_m);
     };
+
+    // Code mostly from Jellyfish 1.6 source
+    static uint64_t reverse_complement(uint64_t kmer) {
+      kmer = ((kmer >> 2)  & 0x3333333333333333UL) | ((kmer & 0x3333333333333333UL) << 2);
+      kmer = ((kmer >> 4)  & 0x0F0F0F0F0F0F0F0FUL) | ((kmer & 0x0F0F0F0F0F0F0F0FUL) << 4);
+      kmer = ((kmer >> 8)  & 0x00FF00FF00FF00FFUL) | ((kmer & 0x00FF00FF00FF00FFUL) << 8);
+      kmer = ((kmer >> 16) & 0x0000FFFF0000FFFFUL) | ((kmer & 0x0000FFFF0000FFFFUL) << 16);
+      kmer = ( kmer >> 32                        ) | ( kmer                         << 32);
+      return (((uint64_t)-1) - kmer) >> (8 * sizeof(kmer) - (k << 1));
+    }
 
     private:
     std::string *str;
