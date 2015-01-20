@@ -244,7 +244,7 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
 		taxon = val_ptr ? *val_ptr : 0;
 
 
-		rev_kmer = Database.reverse_complement(*kmer_ptr);
+		rev_kmer = KmerScanner::reverse_complement(*kmer_ptr);
 		KmerScanner::squash_kmer_for_read(Spaced_seed_cstr,rev_kmer,kmer_squashed);
 
 		val_ptr = Database.kmer_query(
