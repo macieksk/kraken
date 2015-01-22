@@ -332,7 +332,7 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
     else
       koss << hitlist_string(taxa, ambig_list);
 
-    koss << " v";  //Mark end of sense/beginning of anti-sense output
+    koss << '|';  //Mark end of sense/beginning of anti-sense output
 
     if (taxa_rc.empty())
       koss << "0:0";
