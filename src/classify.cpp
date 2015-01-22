@@ -24,6 +24,11 @@
 #include "seqreader.hpp"
 #include <boost/algorithm/string/trim.hpp>
 
+#include <iterator>
+#include <numeric>
+#include <map>
+#include <utility>
+
 const size_t DEF_WORK_UNIT_SIZE = 500000;
 
 using namespace std;
@@ -210,12 +215,12 @@ void process_file(char *filename) {
 
 void classify_sequence(DNASequence &dna, ostringstream &koss,
                        ostringstream &coss, ostringstream &uoss) {
-  vector<uint32_t> taxa;
+  vector<uint32_t> taxa, taxa_rc;  //taxa for sense and anti-sense strand
   vector<uint8_t> ambig_list;
-  map<uint32_t, uint32_t> hit_counts;
+  map<uint32_t, uint32_t> hit_counts, hit_counts_rc;
   uint64_t *kmer_ptr;
-  uint32_t taxon = 0, taxon2=0;
-  uint32_t hits = 0;  // only maintained if in quick mode
+  uint32_t taxon = 0, taxon_rc = 0;
+  uint32_t hits = 0, hits_rc = 0;  // only maintained if in quick mode
 
   uint64_t current_bin_key1,current_bin_key2;
   int64_t current_min_pos1 = 1,current_min_pos2 = 1;
@@ -226,7 +231,7 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
   if (dna.seq.size() >= KmerScanner::get_k()) {
     KmerScanner scanner(dna.seq);
     while ((kmer_ptr = scanner.next_kmer()) != NULL) {
-      taxon = 0;
+      taxon = taxon_rc = 0;
       if (scanner.ambig_kmer()) {
         ambig_list.push_back(1);
       }
@@ -243,7 +248,13 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
 							);
 		taxon = val_ptr ? *val_ptr : 0;
 
+		if (taxon) {
+		  hit_counts[taxon]++;
+		  if (Quick_mode && ++hits >= Minimum_hit_count)
+			break;
+		}
 
+		///////////////////// Anti-sense strand
 		rev_kmer = KmerScanner::reverse_complement(*kmer_ptr);
 		KmerScanner::squash_kmer_for_read(Spaced_seed_cstr,rev_kmer,kmer_squashed);
 
@@ -252,30 +263,33 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
 							  &current_bin_key2,
 							  &current_min_pos2, &current_max_pos2
 							);
-		taxon2 = val_ptr ? *val_ptr : 0;
+		taxon_rc = val_ptr ? *val_ptr : 0;
 
-		//Perform LCA resolution if both above queries succeed
-		if (taxon && taxon2){
-			taxon = lca(Parent_map, taxon, taxon2);
-		} else {
-			taxon = taxon? taxon : taxon2;
-		}
-
-		if (taxon) {
-		  hit_counts[taxon]++;
-		  if (Quick_mode && ++hits >= Minimum_hit_count)
+		if (taxon_rc) {
+		  hit_counts_rc[taxon_rc]++;
+		  if (Quick_mode && ++hits_rc >= Minimum_hit_count)
 			break;
 		}
       }
       taxa.push_back(taxon);
+      taxa_rc.push_back(taxon_rc);
     }
   }
 
-  uint32_t call = 0;
-  if (Quick_mode)
+  uint32_t call = 0, call_rc = 0;
+  if (Quick_mode) {
     call = hits >= Minimum_hit_count ? taxon : 0;
-  else
-    call = resolve_tree(hit_counts, Parent_map);
+    call_rc = hits_rc >= Minimum_hit_count ? taxon_rc : 0;
+  } else {
+    auto map_acc = [](const size_t prev, const std::pair<uint32_t,uint32_t>& p)
+    		       { return prev + p.second; };
+	hits = std::accumulate(std::begin(hit_counts), std::end(hit_counts),0,map_acc);
+	hits_rc = std::accumulate(std::begin(hit_counts_rc), std::end(hit_counts_rc),0,map_acc);
+	call = resolve_tree(hit_counts, Parent_map);
+    call_rc = resolve_tree(hit_counts_rc, Parent_map);
+  }
+  //Choose the call with more hits
+  call = hits >= hits_rc ? call : call_rc;
 
   if (call)
     #pragma omp atomic
@@ -317,6 +331,13 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
       koss << "0:0";
     else
       koss << hitlist_string(taxa, ambig_list);
+
+    koss << " v";  //Mark end of sense/beginning of anti-sense output
+
+    if (taxa_rc.empty())
+      koss << "0:0";
+    else
+      koss << hitlist_string(taxa_rc, ambig_list);
   }
 
   koss << endl;
