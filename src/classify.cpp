@@ -218,7 +218,8 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
   vector<uint32_t> taxa, taxa_rc;  //taxa for sense and anti-sense strand
   vector<uint8_t> ambig_list;
   map<uint32_t, uint32_t> hit_counts, hit_counts_rc;
-  uint64_t *kmer_ptr;
+  KmerScanner::base_type_in *kmer_ptr;
+  KmerScanner::base_type_in rev_kmer;
   uint32_t taxon = 0, taxon_rc = 0;
   uint32_t hits = 0, hits_rc = 0;  // only maintained if in quick mode
 
@@ -226,7 +227,7 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
   int64_t current_min_pos1 = 1,current_min_pos2 = 1;
   int64_t current_max_pos1 = 0,current_max_pos2 = 0;
 
-  uint64_t kmer_squashed, rev_kmer;
+  uint64_t kmer_squashed;
 
   if (dna.seq.size() >= KmerScanner::get_k()) {
     KmerScanner scanner(dna.seq);

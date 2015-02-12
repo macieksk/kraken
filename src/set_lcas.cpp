@@ -163,7 +163,7 @@ void process_file(string filename, uint32_t taxid) {
 
 void set_lcas(uint32_t taxid, string &seq, size_t start, size_t finish) {
   KmerScanner scanner(seq, start, finish);
-  uint64_t *kmer_ptr;
+  KmerScanner::base_type_in *kmer_ptr;
   uint32_t *val_ptr;
 
   while ((kmer_ptr = scanner.next_kmer()) != NULL) {
