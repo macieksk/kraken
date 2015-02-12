@@ -117,8 +117,8 @@ namespace kraken {
   }
 
   uint8_t KmerScanner::k = 0;
-  uint64_t KmerScanner::kmer_mask = 0;
-  uint32_t KmerScanner::mini_kmer_mask = 0;
+  KmerScanner::base_type_in KmerScanner::kmer_mask = 0;
+  uint64_t KmerScanner::mini_kmer_mask = 0;
 
   // Create a scanner for the string over the interval [start, finish)
   KmerScanner::KmerScanner(string &seq, size_t start, size_t finish) {
@@ -150,7 +150,7 @@ namespace kraken {
     mini_kmer_mask >>= sizeof(mini_kmer_mask) * 8 - k;
   }
 
-  uint64_t *KmerScanner::next_kmer() {
+  KmerScanner::base_type_in *KmerScanner::next_kmer() {
     if (curr_pos >= pos2)
       return NULL;
     if (loaded_nt)  
