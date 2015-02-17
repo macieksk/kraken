@@ -118,7 +118,7 @@ namespace kraken {
 
   uint8_t KmerScanner::k = 0;
   KmerScanner::base_type_in KmerScanner::kmer_mask = 0;
-  uint64_t KmerScanner::mini_kmer_mask = 0;
+  KmerScanner::base_type_in_half KmerScanner::mini_kmer_mask = 0;
 
   // Create a scanner for the string over the interval [start, finish)
   KmerScanner::KmerScanner(string &seq, size_t start, size_t finish) {
