@@ -1,1 +1,5 @@
 site_name: seed-Kraken Docs
+pages:
+- [index.md, Home]
+- [about.md, About]
+theme: readthedocs
