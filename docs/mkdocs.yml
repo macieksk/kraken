@@ -2,4 +2,3 @@ site_name: seedKrakenDocs
 pages:
 - [index.md, Home]
 - [about.md, About]
-theme: readthedocs
