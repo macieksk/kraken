@@ -1,4 +1,6 @@
 site_name: seedKrakenDocs
 pages:
 - [index.md, Home]
+- [example.md, Example Run]
+- [installation.md, Installation]
 - [about.md, About]
