@@ -1,5 +1,6 @@
 # Welcome to MkDocs
 
+This is outer index.md
 For full documentation visit [mkdocs.org](http://mkdocs.org).
 
 ## Commands
