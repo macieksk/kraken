@@ -6,6 +6,5 @@ docs_dir: .
 markdow_extensions: [smartypants]
 pages:
 - [index.md, Home]
-- [example.md, Example Run]
 - [installation.md, Installation]
 - [about.md, About]
