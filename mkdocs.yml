@@ -2,7 +2,7 @@ site_name: Documentation for seed-Kraken
 repo_url: https://github.com/macieksk/seed-kraken
 site_author: Maciek Sykulski macieksk@gmail.com
 theme: cosmo
-docs_dir: .
+docs_dir: docs
 markdow_extensions: [smartypants]
 pages:
 - [index.md, Home]
