@@ -1,10 +1,16 @@
 site_name: Documentation for seed-Kraken
 repo_url: https://github.com/macieksk/seed-kraken
 site_author: Maciek Sykulski macieksk@gmail.com
-theme: cosmo
+site_description: seed-Kraken - a software for metagenomics based on kmer counting with modification to allow using spaced seeds.
+theme: readthedocs
 docs_dir: docs
 markdow_extensions: [smartypants]
+#use_directory_urls: false
 pages:
-- [index.md, Home]
-- [installation.md, Installation]
-- [about.md, About]
+- [index.md, 'Info']
+- [theory.md, 'Theory of spaced seeds']
+- [installation.md, 'Installation']
+- [user-guide/build.md, 'User Guide', 'Building a database']
+- [user-guide/class.md, 'User Guide', 'Classifying reads']
+- [about/release.md, 'About', 'Release']
+- [about/links.md, 'About', 'Contact and Links']
