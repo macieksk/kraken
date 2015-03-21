@@ -12,7 +12,8 @@ The current branch should be `seedmod128b`.
 
 ## Building seed-Kraken
 
-Build **seed-Kraken** and install it into a directory in your `$PATH`, for example `~/bin`.
+Build **seed-Kraken** and install it into a directory in your `$PATH`, for example `~/bin`. 
+This step requires C++11 enabled GCC with support for `auto`, so GCC >4.4 is required.
 
     install_kraken.sh ~/bin
     
