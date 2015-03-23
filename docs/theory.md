@@ -6,7 +6,7 @@ matches interleaved with spaces – jokers (*“don’t care”* positions).
 Spaced is seed is characterized by its *weight* (number of matching characters) and its *span* (total length).
 Below is an example of a *spaced seed* of weight 28 and span 40:
     
-    ######-##-#-#-##-###-#-##---###--#######
+    "######-##-#-#-##-###-#-##---###--#######"
 
 In the *arXiv* paper [1] linked below, through a series
 of computational experiments, we show that spaced seeds significantly improve the
@@ -14,8 +14,10 @@ accuracy of metagenomic classification of short NGS reads.
 
 # Choosing a spaced seed
 
-Choosing an optimal seed for a given task is an open problem. 
-Luckily, random seeds work well enough in most tasks. [3]
+Choosing an optimal seed for a given task is a difficult problem.
+[Iedera](http://bioinfo.lifl.fr/yass/iedera.php) provides a
+versatile tool for designing good spaced seeds for various purposes.
+Luckily, random seeds work well enough in most tasks.
 
 In our experiments we've found that **seed-Kraken** with the use of the above weight 28 span 40 *spaced seed*
 performs better on data with low error rate (plot below)
@@ -52,4 +54,4 @@ different in the aspect of separately considering *sense/anti-sense* strands.
 Bioinformatics, 5(149), 14 October 2004.-->
 2. [*Kraken: ultrafast metagenomic sequence classification using exact alignments.*](http://genomebiology.com/2014/15/3/R46) Wood DE, Salzberg SL: Genome Biology 2014, 15:R46.
 3. [*Iedera: subset seed design tool*](http://bioinfo.lifl.fr/yass/iedera) G. Kucherov, L. Noé, and M. Roytberg, , 2009
-4. [*A Coverage Criterion for Spaced Seeds and Its Applications to Support Vector Machine String Kernels and k-Mer Distances*](https://hal-univ-diderot.archives-ouvertes.fr/hal-01083204/document) L Noé, DEK Martin - Journal of Computational Biology, 2014
+4. [*A Coverage Criterion for Spaced Seeds and Its Applications to Support Vector Machine String Kernels and k-Mer Distances*](http://online.liebertpub.com/doi/abs/10.1089/cmb.2014.0173) L Noé, DEK Martin - Journal of Computational Biology, 2014
