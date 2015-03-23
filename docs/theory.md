@@ -6,7 +6,7 @@ matches interleaved with spaces – jokers (*“don’t care”* positions).
 Spaced is seed is characterized by its *weight* (number of matching characters) and its *span* (total length).
 Below is an example of a *spaced seed* of weight 28 and span 40:
     
-    "######_##_#_#_##_###_#_##___###__#######"
+    SEED="######-##-#-#-##-###-#-##---###--#######"
 
 In the *arXiv* paper [1] linked below, through a series
 of computational experiments, we show that spaced seeds significantly improve the

@@ -12,7 +12,7 @@ A *spaced seed* is a local match triggering an alignment, encoded with a pattern
 matches interleaved with spaces – jokers (*“don’t care”* positions). 
 Below is an example of a *spaced seed* of weight 28 (non-spaces) and span 40 (total length):
 
-    "######_##_#_#_##_###_#_##___###__#######"
+    SEED="######-##-#-#-##-###-#-##---###--#######"
 
 You can find more about *spaced seeds* and why is it worth working with them in [section about theory of 'Spaced seeds'.](theory.md)
 
