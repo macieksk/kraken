@@ -7,9 +7,9 @@ docs_dir: docs
 markdow_extensions: [smartypants]
 #use_directory_urls: false
 pages:
-- [index.md, 'Info']
-- [theory.md, 'Theory of spaced seeds']
-- [installation.md, 'Installation']
+- [index.md, 'Info' ,'Info']
+- [theory.md, 'Info','Spaced seeds']
+- [installation.md, 'User Guide','Installation']
 - [user-guide/build.md, 'User Guide', 'Building a database']
 - [user-guide/class.md, 'User Guide', 'Classifying reads']
 - [about/release.md, 'About', 'Release']
