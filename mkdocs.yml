@@ -4,7 +4,7 @@ site_author: Maciek Sykulski macieksk@gmail.com
 site_description: seed-Kraken - a software for metagenomics based on kmer counting with modification to allow using spaced seeds.
 theme: readthedocs
 docs_dir: docs
-markdow_extensions: [smartypants]
+markdown_extensions: [smartypants]
 #use_directory_urls: false
 pages:
 - [index.md, 'Info' ,'Info']
