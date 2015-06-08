@@ -283,9 +283,14 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
     call = hits >= Minimum_hit_count ? taxon : 0;
     call_rc = hits_rc >= Minimum_hit_count ? taxon_rc : 0;
   } else if (Original_assignment_algorithm){
-      	auto copy_elem = [&](const std::pair<uint32_t,uint32_t>& p)
-    		            { hit_counts[p.first] += p.second; };
-	std::for_each(std::begin(hit_counts_rc), std::end(hit_counts_rc),copy_elem);
+      	for (auto it = std::begin(hit_counts_rc); it != std::end(hit_counts_rc); ++it) {
+	    auto fit = hit_counts.find( it->first );
+	    if ( fit == std::end(hit_counts) ) {
+		hit_counts[it->first] = it->second;
+	    } else {
+		hit_counts[it->first] += it->second;
+	    }	    
+	}
 	hits = std::accumulate(std::begin(hit_counts), std::end(hit_counts),0,map_acc);	
 	call = resolve_tree(hit_counts, Parent_map);	
 	hits_rc = -1;
