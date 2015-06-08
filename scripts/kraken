@@ -48,6 +48,7 @@ my $fastq_input = 0;
 my $db_prefix;
 my $threads;
 my $preload = 0;
+my $origassign = 0;
 my $gunzip = 0;
 my $bunzip2 = 0;
 my $paired = 0;
@@ -72,6 +73,7 @@ GetOptions(
   "preload" => \$preload,
   "paired" => \$paired,
   "check-names" => \$check_names,
+  "origassign" => \$origassign,
   "gzip-compressed" => \$gunzip,
   "bzip2-compressed" => \$bunzip2,
   "only-classified-output" => \$only_classified_output,
@@ -155,6 +157,7 @@ push @flags, "-C", $classified_out if defined $classified_out;
 push @flags, "-o", $outfile if defined $outfile;
 push @flags, "-c", if $only_classified_output;
 push @flags, "-M" if $preload;
+push @flags, "-a" if $origassign;
 
 # handle piping for decompression/merging
 my @pipe_argv;
@@ -234,6 +237,7 @@ Options:
   --only-classified-output
                           Print no Kraken output for unclassified sequences
   --preload               Loads DB into memory before classification
+  --origassign            Uses assignment algorithm on both strands at once (like original Kraken)
   --paired                The two filenames provided are paired-end reads
   --check-names           Ensure each pair of reads have names that agree
                           with each other; ignored if --paired is not specified
