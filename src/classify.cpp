@@ -46,6 +46,7 @@ void report_stats(struct timeval time1, struct timeval time2);
 int Num_threads = 1;
 string DB_filename, Index_filename, Nodes_filename, Spaced_seed;
 const char * Spaced_seed_cstr;
+bool Original_assignment_algorithm = false;
 bool Quick_mode = false;
 bool Fastq_input = false;
 bool Print_classified = false;
@@ -275,16 +276,31 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
   }
 
   uint32_t call = 0, call_rc = 0;
+  auto map_acc = [](const size_t prev, const std::pair<uint32_t,uint32_t>& p)
+    		       { return prev + p.second; };
+		       
   if (Quick_mode) {
     call = hits >= Minimum_hit_count ? taxon : 0;
     call_rc = hits_rc >= Minimum_hit_count ? taxon_rc : 0;
+  } else if (Original_assignment_algorithm){
+      	auto copy_elem = [&](const std::pair<uint32_t,uint32_t>& p)
+    		       { return hit_counts[p.first] += p.second; };
+	std::for_each(std::begin(hit_counts_rc), std::end(hit_counts_rc),copy_elem);
+	hits = std::accumulate(std::begin(hit_counts), std::end(hit_counts),0,map_acc);	
+	call = resolve_tree(hit_counts, Parent_map);	
+	hits_rc = -1;
+	call_rc = 0;
   } else {
-    auto map_acc = [](const size_t prev, const std::pair<uint32_t,uint32_t>& p)
-    		       { return prev + p.second; };
+	
 	hits = std::accumulate(std::begin(hit_counts), std::end(hit_counts),0,map_acc);
 	hits_rc = std::accumulate(std::begin(hit_counts_rc), std::end(hit_counts_rc),0,map_acc);
-	call = resolve_tree(hit_counts, Parent_map);
-    call_rc = resolve_tree(hit_counts_rc, Parent_map);
+	if (hits >= hits_rc) {
+	    call = resolve_tree(hit_counts, Parent_map);
+	    call_rc = 0;
+	} else {
+	    call_rc = resolve_tree(hit_counts_rc, Parent_map);
+	    call = 0;
+	}
   }
   //Choose the call with more hits
   call = hits >= hits_rc ? call : call_rc;
@@ -396,7 +412,7 @@ void parse_command_line(int argc, char **argv) {
 
   if (argc > 1 && strcmp(argv[1], "-h") == 0)
     usage(0);
-  while ((opt = getopt(argc, argv, "d:i:t:u:n:m:o:qfcC:U:MZ:")) != -1) {
+  while ((opt = getopt(argc, argv, "d:i:t:u:n:m:o:qfcC:U:MaZ:")) != -1) {
     switch (opt) {
       case 'd' :
         DB_filename = optarg;
@@ -453,6 +469,9 @@ void parse_command_line(int argc, char **argv) {
       case 'M' :
         Populate_memory = true;
         break;
+      case 'a' :
+        Original_assignment_algorithm = true;
+        break;	
       case 'Z' :
         Spaced_seed = optarg;
         boost::algorithm::trim(Spaced_seed);
@@ -504,6 +523,7 @@ void usage(int exit_code) {
        << "  -f               Input is in FASTQ format" << endl
        << "  -c               Only include classified reads in output" << endl
        << "  -M               Preload database files" << endl
+       << "  -a               Original assignment algorithm" << endl
        << "  -h               Print this message" << endl
        << endl
        << "At least one FASTA or FASTQ file must be specified." << endl
