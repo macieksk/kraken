@@ -5,7 +5,7 @@ Clone the repository from [github](https://github.com/macieksk/seed-kraken) toge
     git clone --recursive git@github.com:macieksk/seed-kraken.git
     cd seed-kraken    
     
-The current branch should be `seedmod128b`.
+The branch with the latest version is `seedmod128b_from_0.10.6`.
 
     git branch
 
