@@ -218,7 +218,7 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
   map<uint32_t, uint32_t> hit_counts, hit_counts_rc;
   KmerScanner::base_type_in *kmer_ptr;
   KmerScanner::base_type_in rev_kmer;
-  uint32_t taxon = 0, taxon_rc = 0;
+  uint32_t taxon = 0, taxon_rc = 0, taxon_lca = 0;
   uint32_t hits = 0, hits_rc = 0;  // only maintained if in quick mode
 
   uint64_t current_bin_key1,current_bin_key2;
@@ -260,19 +260,25 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
 		taxon_rc = val_ptr ? *val_ptr : 0;
 		
 		if (Original_assignment_algorithm){
+		    
 		  if (taxon && taxon_rc)  
-		    taxon = lca(Parent_map, taxon, taxon_rc);
+		    taxon_lca = lca(Parent_map, taxon, taxon_rc);
 		  else
-		    taxon = taxon ? taxon : taxon_rc;
-		}
-		
-		if (taxon) {
-		  hit_counts[taxon]++;
-		  if (Quick_mode && ++hits >= Minimum_hit_count)
+		    taxon_lca = taxon ? taxon : taxon_rc;
+		  
+		  if (taxon_lca) {
+		    hit_counts[taxon_lca]++;
+		    if (Quick_mode && ++hits >= Minimum_hit_count)
 			break;
-		}
+		  }
+		  
+		} else {
+		  if (taxon) {
+		    hit_counts[taxon]++;
+		    if (Quick_mode && ++hits >= Minimum_hit_count)
+			break;
+		  }		
 		
-		if (!Original_assignment_algorithm){
 		  if (taxon_rc) {
 		    hit_counts_rc[taxon_rc]++;
 		    if (Quick_mode && ++hits_rc >= Minimum_hit_count)
