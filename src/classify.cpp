@@ -246,12 +246,7 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
 							  &current_min_pos1, &current_max_pos1
 							);
 		taxon = val_ptr ? *val_ptr : 0;
-
-		if (taxon) {
-		  hit_counts[taxon]++;
-		  if (Quick_mode && ++hits >= Minimum_hit_count)
-			break;
-		}
+		
 
 		///////////////////// Anti-sense strand
 		rev_kmer = KmerScanner::reverse_complement(*kmer_ptr);
@@ -263,11 +258,26 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
 							  &current_min_pos2, &current_max_pos2
 							);
 		taxon_rc = val_ptr ? *val_ptr : 0;
-
-		if (taxon_rc) {
-		  hit_counts_rc[taxon_rc]++;
-		  if (Quick_mode && ++hits_rc >= Minimum_hit_count)
+		
+		if (Original_assignment_algorithm){
+		  if (taxon && taxon_rc)  
+		    taxon = lca(Parent_map, taxon, taxon_rc);
+		  else
+		    taxon = taxon ? taxon : taxon_rc;
+		}
+		
+		if (taxon) {
+		  hit_counts[taxon]++;
+		  if (Quick_mode && ++hits >= Minimum_hit_count)
 			break;
+		}
+		
+		if (!Original_assignment_algorithm){
+		  if (taxon_rc) {
+		    hit_counts_rc[taxon_rc]++;
+		    if (Quick_mode && ++hits_rc >= Minimum_hit_count)
+			break;
+		  }
 		}
       }
       taxa.push_back(taxon);
@@ -283,9 +293,6 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
     call = hits >= Minimum_hit_count ? taxon : 0;
     call_rc = hits_rc >= Minimum_hit_count ? taxon_rc : 0;
   } else if (Original_assignment_algorithm){
-	for (auto const &it: hit_counts_rc) {
-		hit_counts[it.first] += it.second;
-	}
 	hits = std::accumulate(std::begin(hit_counts), std::end(hit_counts),0,map_acc);	
 	call = resolve_tree(hit_counts, Parent_map);	
 	hits_rc = 0;
