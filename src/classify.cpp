@@ -235,13 +235,13 @@ void classify_sequence(DNASequence &dna, ostringstream &koss,
         ambig_list.push_back(1);
       }
       else {
-        ambig_list.push_back(0);
+                ambig_list.push_back(0);
 
-        KmerScanner::squash_kmer_for_read(Spaced_seed_cstr,*kmer_ptr,kmer_squashed);
+                KmerScanner::squash_kmer_for_read(Spaced_seed_cstr,*kmer_ptr,kmer_squashed);
 
 		uint32_t *val_ptr = Database.kmer_query(
 							  //Database.canonical_representation(*kmer_ptr),
-		                      kmer_squashed,
+		                                          kmer_squashed,
 							  &current_bin_key1,
 							  &current_min_pos1, &current_max_pos1
 							);
