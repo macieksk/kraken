@@ -20,4 +20,4 @@ Information on the original **Kraken** software can be found at [http://ccb.jhu.
 
 If you use **seed-Kraken**, please cite our paper:
 
-1. *Spaced seeds improve metagenomic classification.*  Karel Brinda, Maciej Sykulski, Gregory Kucherov [http://arxiv.org/abs/1502.06256](http://arxiv.org/abs/1502.06256)
+1. *Spaced seeds improve k-mer based metagenomic classification*  Karel Brinda, Maciej Sykulski, Gregory Kucherov [http://bioinformatics.oxfordjournals.org/content/early/2015/08/10/bioinformatics.btv419](http://bioinformatics.oxfordjournals.org/content/early/2015/08/10/bioinformatics.btv419)
