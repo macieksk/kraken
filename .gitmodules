@@ -1,3 +1,4 @@
 [submodule "Jellyfish"]
 	path = Jellyfish
-	url = git@github.com:macieksk/seed-Jellyfish.git
+    url = https://github.com/macieksk/seed-Jellyfish.git
+#	url = git@github.com:macieksk/seed-Jellyfish.git
