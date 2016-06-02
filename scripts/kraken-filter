@@ -84,11 +84,18 @@ while (<>) {
   chomp;
   my @fields = split /\t/;
   my ($code, $seqid, $called_taxon, $len, $hit_list) = @fields;
-  my @hits = split " ", $hit_list;
+  my ($hit_list_n, $hit_list_rc) = split /\|/, $hit_list;
+  my @hits = split " ", $hit_list_n;
   my %hit_counts;
   for (@hits) {
     my ($taxid, $ct) = split /:/;
     $hit_counts{$taxid} += $ct;
+  }
+  @hits = split " ", $hit_list_rc;
+  my %hit_counts_rc;
+  for (@hits) {
+    my ($taxid, $ct) = split /:/;
+    $hit_counts_rc{$taxid} += $ct;
   }
 
   # maps nodes to count of hits at or below node
@@ -111,6 +118,35 @@ while (<>) {
         }
       }
     }
+  }
+  
+  my %hit_sums_rc;
+
+  my $total_kmers_rc = 0;
+  my $total_unambig_rc = 0;
+  my $total_hits_rc = 0;
+  for (keys %hit_counts_rc) {
+    my $count = $hit_counts_rc{$_};
+    $total_kmers_rc += $count;
+    if ($_ ne "A") {
+      $total_unambig_rc += $count;
+      if ($_ > 0) {
+        $total_hits_rc += $count;
+        my $taxid = $_;
+        while ($taxid > 0) {
+          $hit_sums_rc{$taxid} += $count;
+          $taxid = $parent_map{$taxid};
+        }
+      }
+    }
+  }
+
+  if ($total_hits_rc>$total_hits) {
+    %hit_sums = %hit_sums_rc;
+    $total_kmers = $total_kmers_rc;
+    $total_unambig = $total_unambig_rc;
+    $total_hits = $total_hits_rc;
+    %hit_counts = %hit_counts_rc;
   }
 
   my $pct = 0;
